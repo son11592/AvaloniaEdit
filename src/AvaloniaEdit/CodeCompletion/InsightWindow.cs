@@ -40,7 +40,7 @@ namespace AvaloniaEdit.CodeCompletion
         private void Initialize()
         {
             // TODO: working area
-            //var caret = this.TextArea.Caret.CalculateCaretRectangle();
+            //var caret = this.TextArea.Carets[0].CalculateCaretRectangle();
             //var pointOnScreen = this.TextArea.TextView.PointToScreen(caret.Location - this.TextArea.TextView.ScrollOffset);
             //Rect workingArea = System.Windows.Forms.Screen.FromPoint(pointOnScreen.ToSystemDrawing()).WorkingArea.ToWpf().TransformFromDevice(this);
             //MaxHeight = workingArea.Height;
@@ -58,13 +58,13 @@ namespace AvaloniaEdit.CodeCompletion
 
         private void AttachEvents()
         {
-            TextArea.Caret.PositionChanged += CaretPositionChanged;
+            TextArea.Carets[0].PositionChanged += CaretPositionChanged;
         }
 
         /// <inheritdoc/>
         protected override void DetachEvents()
         {
-            TextArea.Caret.PositionChanged -= CaretPositionChanged;
+            TextArea.Carets[0].PositionChanged -= CaretPositionChanged;
             base.DetachEvents();
         }
 
@@ -72,7 +72,7 @@ namespace AvaloniaEdit.CodeCompletion
         {
             if (CloseAutomatically)
             {
-                var offset = TextArea.Caret.Offset;
+                var offset = TextArea.Carets[0].Offset;
                 if (offset < StartOffset || offset > EndOffset)
                 {
                     Hide();

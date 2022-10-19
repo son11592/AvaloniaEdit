@@ -152,7 +152,7 @@ namespace AvaloniaEdit.Editing
         //{
         //	try {
         //		e.Effects = GetEffect(e);
-        //		textArea.Caret.Show();
+        //		textArea.Carets[0].Show();
         //	} catch (Exception ex) {
         //		OnDragException(ex);
         //	}
@@ -176,8 +176,8 @@ namespace AvaloniaEdit.Editing
         //		bool isAtEndOfLine;
         //		int offset = GetOffsetFromMousePosition(e.GetPosition(textArea.TextView), out visualColumn, out isAtEndOfLine);
         //		if (offset >= 0) {
-        //			textArea.Caret.Position = new TextViewPosition(textArea.Document.GetLocation(offset), visualColumn) { IsAtEndOfLine = isAtEndOfLine };
-        //			textArea.Caret.DesiredXPos = double.NaN;
+        //			textArea.Carets[0].Position = new TextViewPosition(textArea.Document.GetLocation(offset), visualColumn) { IsAtEndOfLine = isAtEndOfLine };
+        //			textArea.Carets[0].DesiredXPos = double.NaN;
         //			if (textArea.ReadOnlySectionProvider.CanInsert(offset)) {
         //				if ((e.AllowedEffects & DragDropEffects.Move) == DragDropEffects.Move
         //				    && (e.KeyStates & DragDropKeyStates.ControlKey) != DragDropKeyStates.ControlKey)
@@ -198,7 +198,7 @@ namespace AvaloniaEdit.Editing
         //	try {
         //		e.Handled = true;
         //		if (!textArea.IsKeyboardFocusWithin)
-        //			textArea.Caret.Hide();
+        //			textArea.Carets[0].Hide();
         //	} catch (Exception ex) {
         //		OnDragException(ex);
         //	}
@@ -211,7 +211,7 @@ namespace AvaloniaEdit.Editing
         //		DragDropEffects effect = GetEffect(e);
         //		e.Effects = effect;
         //		if (effect != DragDropEffects.None) {
-        //			int start = textArea.Caret.Offset;
+        //			int start = textArea.Carets[0].Offset;
         //			if (mode == SelectionMode.Drag && textArea.Selection.Contains(start)) {
         //				Debug.WriteLine("Drop: did not drop: drop target is inside selection");
         //				e.Effects = DragDropEffects.None;
@@ -233,7 +233,7 @@ namespace AvaloniaEdit.Editing
         //				// the undo groups when text is moved.
         //				textArea.Document.UndoStack.StartUndoGroup(this.currentDragDescriptor);
         //				try {
-        //					if (rectangular && RectangleSelection.PerformRectangularPaste(textArea, textArea.Caret.Position, text, true)) {
+        //					if (rectangular && RectangleSelection.PerformRectangularPaste(textArea, textArea.Carets[0].Position, text, true)) {
 
         //					} else {
         //						textArea.Document.Insert(start, text);
@@ -323,7 +323,7 @@ namespace AvaloniaEdit.Editing
 
         //	DragDropEffects resultEffect;
         //	using (textArea.AllowCaretOutsideSelection()) {
-        //		var oldCaretPosition = textArea.Caret.Position;
+        //		var oldCaretPosition = textArea.Carets[0].Position;
         //		try {
         //			Debug.WriteLine("DoDragDrop with allowedEffects=" + allowedEffects);
         //			resultEffect = DragDrop.DoDragDrop(textArea, dataObject, allowedEffects);
@@ -335,7 +335,7 @@ namespace AvaloniaEdit.Editing
         //		}
         //		if (resultEffect == DragDropEffects.None) {
         //			// reset caret if drag was aborted
-        //			textArea.Caret.Position = oldCaretPosition;
+        //			textArea.Carets[0].Position = oldCaretPosition;
         //		}
         //	}
 
@@ -425,7 +425,7 @@ namespace AvaloniaEdit.Editing
                         }
                     }
 
-                    var oldPosition = TextArea.Caret.Position;
+                    var oldPosition = TextArea.Carets[0].Position;
                     SetCaretOffsetToMousePosition(e);
 
 
@@ -441,7 +441,7 @@ namespace AvaloniaEdit.Editing
                             _mode = SelectionMode.Rectangular;
                             if (shift && TextArea.Selection is RectangleSelection)
                             {
-                                TextArea.Selection = TextArea.Selection.StartSelectionOrSetEndpoint(oldPosition, TextArea.Caret.Position);
+                                TextArea.Selection = TextArea.Selection.StartSelectionOrSetEndpoint(oldPosition, TextArea.Carets[0].Position);
                             }
                         }
                         else if (modifiers.HasFlag(KeyModifiers.Control) && e.ClickCount == 1) // e.ClickCount == 1
@@ -449,7 +449,7 @@ namespace AvaloniaEdit.Editing
                             _mode = SelectionMode.WholeWord;
                             if (shift && !(TextArea.Selection is RectangleSelection))
                             {
-                                TextArea.Selection = TextArea.Selection.StartSelectionOrSetEndpoint(oldPosition, TextArea.Caret.Position);
+                                TextArea.Selection = TextArea.Selection.StartSelectionOrSetEndpoint(oldPosition, TextArea.Carets[0].Position);
                             }
                         }
                         else if (pointer.Properties.IsLeftButtonPressed && e.ClickCount == 1) // e.ClickCount == 1
@@ -457,7 +457,7 @@ namespace AvaloniaEdit.Editing
                             _mode = SelectionMode.Normal;
                             if (shift && !(TextArea.Selection is RectangleSelection))
                             {
-                                TextArea.Selection = TextArea.Selection.StartSelectionOrSetEndpoint(oldPosition, TextArea.Caret.Position);
+                                TextArea.Selection = TextArea.Selection.StartSelectionOrSetEndpoint(oldPosition, TextArea.Carets[0].Position);
                             }
                         }
                         else
@@ -674,23 +674,23 @@ namespace AvaloniaEdit.Editing
 
             if (offset >= 0)
             {
-                TextArea.Caret.Position = new TextViewPosition(TextArea.Document.GetLocation(offset), visualColumn) { IsAtEndOfLine = isAtEndOfLine };
-                TextArea.Caret.DesiredXPos = double.NaN;
+                TextArea.Carets[0].Position = new TextViewPosition(TextArea.Document.GetLocation(offset), visualColumn) { IsAtEndOfLine = isAtEndOfLine };
+                TextArea.Carets[0].DesiredXPos = double.NaN;
             }
         }
 
         private void ExtendSelectionToMouse(PointerEventArgs e)
         {
-            var oldPosition = TextArea.Caret.Position;
+            var oldPosition = TextArea.Carets[0].Position;
             if (_mode == SelectionMode.Normal || _mode == SelectionMode.Rectangular)
             {
                 SetCaretOffsetToMousePosition(e);
                 if (_mode == SelectionMode.Normal && TextArea.Selection is RectangleSelection)
-                    TextArea.Selection = new SimpleSelection(TextArea, oldPosition, TextArea.Caret.Position);
+                    TextArea.Selection = new SimpleSelection(TextArea, oldPosition, TextArea.Carets[0].Position);
                 else if (_mode == SelectionMode.Rectangular && !(TextArea.Selection is RectangleSelection))
-                    TextArea.Selection = new RectangleSelection(TextArea, oldPosition, TextArea.Caret.Position);
+                    TextArea.Selection = new RectangleSelection(TextArea, oldPosition, TextArea.Carets[0].Position);
                 else
-                    TextArea.Selection = TextArea.Selection.StartSelectionOrSetEndpoint(oldPosition, TextArea.Caret.Position);
+                    TextArea.Selection = TextArea.Selection.StartSelectionOrSetEndpoint(oldPosition, TextArea.Carets[0].Position);
             }
             else if (_mode == SelectionMode.WholeWord || _mode == SelectionMode.WholeLine)
             {
@@ -701,10 +701,10 @@ namespace AvaloniaEdit.Editing
                                                           Math.Min(newWord.Offset, _startWord.Offset),
                                                           Math.Max(newWord.EndOffset, _startWord.EndOffset));
                     // moves caret to start or end of selection
-                    TextArea.Caret.Offset = newWord.Offset < _startWord.Offset ? newWord.Offset : Math.Max(newWord.EndOffset, _startWord.EndOffset);
+                    TextArea.Carets[0].Offset = newWord.Offset < _startWord.Offset ? newWord.Offset : Math.Max(newWord.EndOffset, _startWord.EndOffset);
                 }
             }
-            TextArea.Caret.BringCaretToView(0);
+            TextArea.Carets[0].BringCaretToView(0);
         }
         #endregion
 

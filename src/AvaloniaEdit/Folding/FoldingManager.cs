@@ -336,7 +336,7 @@ namespace AvaloniaEdit.Folding
                 textArea.TextView.Services.AddService(typeof(FoldingManager), this);
                 // HACK: folding only works correctly when it has highest priority
                 textArea.TextView.ElementGenerators.Insert(0, _generator);
-                textArea.Caret.PositionChanged += TextArea_Caret_PositionChanged;
+                textArea.Carets[0].PositionChanged += TextArea_Caret_PositionChanged;
             }
 
             /*
@@ -368,7 +368,7 @@ namespace AvaloniaEdit.Folding
                 Clear();
                 if (_textArea != null)
                 {
-                    _textArea.Caret.PositionChanged -= TextArea_Caret_PositionChanged;
+                    _textArea.Carets[0].PositionChanged -= TextArea_Caret_PositionChanged;
                     _textArea.LeftMargins.Remove(_margin);
                     _textArea.TextView.ElementGenerators.Remove(_generator);
                     _textArea.TextView.Services.RemoveService(typeof(FoldingManager));
@@ -381,7 +381,7 @@ namespace AvaloniaEdit.Folding
             private void TextArea_Caret_PositionChanged(object sender, EventArgs e)
             {
                 // Expand Foldings when Caret is moved into them.
-                var caretOffset = _textArea.Caret.Offset;
+                var caretOffset = _textArea.Carets[0].Offset;
                 foreach (var s in GetFoldingsContaining(caretOffset))
                 {
                     if (s.IsFolded && s.StartOffset < caretOffset && caretOffset < s.EndOffset)

@@ -76,6 +76,7 @@ namespace AvaloniaEdit.Editing
                     e.Client = ta._imClient;
                 }             
             });
+
         }
 
         /// <summary>
@@ -103,9 +104,10 @@ namespace AvaloniaEdit.Editing
             textView.LineTransformers.Add(new SelectionColorizer(this));
             textView.InsertLayer(new SelectionLayer(this), KnownLayer.Selection, LayerInsertionPosition.Replace);
 
-            Caret = new Caret(this);
-            Caret.PositionChanged += (sender, e) => RequestSelectionValidation();
-            Caret.PositionChanged += CaretPositionChanged;
+            var caret = new Caret(this);
+            caret.PositionChanged += (sender, e) => RequestSelectionValidation();
+            caret.PositionChanged += CaretPositionChanged;
+            Carets.Add(caret);
             AttachTypingEvents();
 
             LeftMargins.CollectionChanged += LeftMargins_CollectionChanged;
@@ -118,6 +120,9 @@ namespace AvaloniaEdit.Editing
             //{
             //    TextView.SetScrollOffset(new Vector(_offset.X, _offset.Y * TextView.DefaultLineHeight));
             //});
+
+            // TablePlus - Setup blink for multiple carets
+            SetupBlink();
         }
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -295,7 +300,7 @@ namespace AvaloniaEdit.Editing
             }
             // Reset caret location and selection: this is necessary because the caret/selection might be invalid
             // in the new document (e.g. if new document is shorter than the old document).
-            Caret.Location = new TextLocation(1, 1);
+            Carets[0].Location = new TextLocation(1, 1);
             ClearSelection();
             DocumentChanged?.Invoke(this, EventArgs.Empty);
             //CommandManager.InvalidateRequerySuggested();
@@ -360,12 +365,12 @@ namespace AvaloniaEdit.Editing
 
         private void OnDocumentChanging(object sender, DocumentChangeEventArgs e)
         {
-            Caret.OnDocumentChanging();
+            Carets[0].OnDocumentChanging();
         }
 
         private void OnDocumentChanged(object sender, DocumentChangeEventArgs e)
         {
-            Caret.OnDocumentChanged(e);
+            Carets[0].OnDocumentChanged(e);
             Selection = _selection.UpdateOnDocumentChange(e);
         }
 
@@ -376,7 +381,7 @@ namespace AvaloniaEdit.Editing
 
         private void OnUpdateFinished(object sender, EventArgs e)
         {
-            Caret.OnDocumentUpdateFinished();
+            Carets[0].OnDocumentUpdateFinished();
         }
 
         private sealed class RestoreCaretAndSelectionUndoAction : IUndoableOperation
@@ -392,7 +397,7 @@ namespace AvaloniaEdit.Editing
                 _textAreaReference = new WeakReference(textArea);
                 // Just save the old caret position, no need to validate here.
                 // If we restore it, we'll validate it anyways.
-                _caretPosition = textArea.Caret.NonValidatedPosition;
+                _caretPosition = textArea.Carets[0].NonValidatedPosition;
                 _selection = textArea.Selection;
             }
 
@@ -401,7 +406,7 @@ namespace AvaloniaEdit.Editing
                 var textArea = (TextArea)_textAreaReference.Target;
                 if (textArea != null)
                 {
-                    textArea.Caret.Position = _caretPosition;
+                    textArea.Carets[0].Position = _caretPosition;
                     textArea.Selection = _selection;
                 }
             }
@@ -584,7 +589,7 @@ namespace AvaloniaEdit.Editing
             _ensureSelectionValidRequested = false;
             if (_allowCaretOutsideSelection == 0)
             {
-                if (!_selection.IsEmpty && !_selection.Contains(Caret.Offset))
+                if (!_selection.IsEmpty && !_selection.Contains(Carets[0].Offset))
                 {
                     ClearSelection();
                 }
@@ -618,10 +623,25 @@ namespace AvaloniaEdit.Editing
 
         #region Properties
 
+        readonly List<Caret> carets = new List<Caret>();
+
         /// <summary>
         /// Gets the Caret used for this text area.
         /// </summary>
-        public Caret Caret { get; }
+        public Caret DefaultCaret()
+        {
+            return carets[0];
+        }
+        public List<Caret> Carets
+        {
+            get { return carets; }
+        }
+
+        public void removeCaret(Caret caret)
+        {
+            caret.ReleaseCaret();
+            carets.Remove(caret);
+        }
 
         /// <summary>
         /// Scrolls the text view so that the requested line is in the middle.
@@ -678,9 +698,9 @@ namespace AvaloniaEdit.Editing
             if (TextView == null)
                 return;
 
-            TextView.HighlightedLine = Caret.Line;
+            TextView.HighlightedLine = Carets[0].Line;
 
-            ScrollToLine(Caret.Line, 2);
+            ScrollToLine(Carets[0].Line, 2);
 
             Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -754,7 +774,7 @@ namespace AvaloniaEdit.Editing
         {
             base.OnGotFocus(e);
 
-            Caret.Show();
+            ShowCarets();
 
             _imClient.SetTextArea(this);
         }
@@ -763,7 +783,7 @@ namespace AvaloniaEdit.Editing
         {
             base.OnLostFocus(e);
 
-            Caret.Hide();
+            HideCarets();
 
             _imClient.SetTextArea(null);
         }
@@ -861,19 +881,19 @@ namespace AvaloniaEdit.Editing
                     ReplaceSelectionWithText(e.Text);
                 }
                 OnTextEntered(e);
-                Caret.BringCaretToView();
+                Carets[0].BringCaretToView();
             }
         }
 
         private void ReplaceSelectionWithNewLine()
         {
-            var newLine = TextUtilities.GetNewLineFromDocument(Document, Caret.Line);
+            var newLine = TextUtilities.GetNewLineFromDocument(Document, Carets[0].Line);
             using (Document.RunUpdate())
             {
                 ReplaceSelectionWithText(newLine);
                 if (IndentationStrategy != null)
                 {
-                    var line = Document.GetLineByNumber(Caret.Line);
+                    var line = Document.GetLineByNumber(Carets[0].Line);
                     var deletable = GetDeletableSegments(line);
                     if (deletable.Length == 1 && deletable[0].Offset == line.Offset && deletable[0].Length == line.Length)
                     {
@@ -1046,7 +1066,7 @@ namespace AvaloniaEdit.Editing
             }
             else if (change.Property == OverstrikeModeProperty)
             {
-                Caret.UpdateIfVisible();
+                Carets[0].UpdateIfVisible();
             }
         }
 
@@ -1164,7 +1184,7 @@ namespace AvaloniaEdit.Editing
                         return default;
                     }
 
-                    var rect = _textArea.Caret.CalculateCaretRectangle().TransformToAABB(transform.Value);
+                    var rect = _textArea.Carets[0].CalculateCaretRectangle().TransformToAABB(transform.Value);
 
                     return rect;
                 }
@@ -1185,9 +1205,9 @@ namespace AvaloniaEdit.Editing
                         return default;
                     }
 
-                    var lineIndex = _textArea.Caret.Line;
+                    var lineIndex = _textArea.Carets[0].Line;
 
-                    var position = _textArea.Caret.Position;
+                    var position = _textArea.Carets[0].Position;
 
                     var documentLine = _textArea.Document.GetLineByNumber(lineIndex);
 
@@ -1206,7 +1226,7 @@ namespace AvaloniaEdit.Editing
             {
                 if(_textArea != null)
                 {
-                    _textArea.Caret.PositionChanged -= Caret_PositionChanged;
+                    _textArea.Carets[0].PositionChanged -= Caret_PositionChanged;
                     _textArea.SelectionChanged -= TextArea_SelectionChanged;
                 }
 
@@ -1214,7 +1234,7 @@ namespace AvaloniaEdit.Editing
 
                 if(_textArea != null)
                 {
-                    _textArea.Caret.PositionChanged += Caret_PositionChanged;
+                    _textArea.Carets[0].PositionChanged += Caret_PositionChanged;
                     _textArea.SelectionChanged += TextArea_SelectionChanged;
                 }
 
@@ -1252,6 +1272,61 @@ namespace AvaloniaEdit.Editing
               
             }
         }
+
+        #region TablePlus - Multiple Carets
+        private readonly DispatcherTimer _caretBlinkTimer = new DispatcherTimer();
+        private bool _blink = false;
+        private bool Blink
+        {
+            get => _blink;
+            set
+            {
+                _blink = value;
+                foreach (var caret in Carets) caret.Layer.Blink = value;
+            }
+        }
+
+        private void SetupBlink()
+        {
+            _caretBlinkTimer.Tick += CaretBlinkTimer_Tick;
+        }
+
+        private void CaretBlinkTimer_Tick(object sender, EventArgs e)
+        {
+            Blink = !Blink;
+            foreach (var caret in Carets) caret.Layer.InvalidateVisual();
+        }
+
+        private void StartBlinkAnimation()
+        {
+            // TODO
+            var blinkTime = TimeSpan.FromMilliseconds(500); //Win32.CaretBlinkTime;
+            Blink = true; // the caret should visible initially
+                           // This is important if blinking is disabled (system reports a negative blinkTime)
+            if (blinkTime.TotalMilliseconds > 0)
+            {
+                _caretBlinkTimer.Interval = blinkTime;
+                _caretBlinkTimer.Start();
+            }
+        }
+
+        private void StopBlinkAnimation()
+        {
+            _caretBlinkTimer.Stop();
+        }
+
+        private void ShowCarets()
+        {
+            StartBlinkAnimation();
+            foreach (var caret in Carets) caret.Show();
+        }
+
+        private void HideCarets()
+        {
+            StopBlinkAnimation();
+            foreach (var caret in Carets) caret.Hide();
+        }
+        #endregion
     }
 
     /// <summary>

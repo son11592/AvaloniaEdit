@@ -942,11 +942,11 @@ namespace AvaloniaEdit
         {
             get
             {
-                return textArea.Caret.Offset;
+                return textArea.Carets[0].Offset;
             }
             set
             {
-                textArea.Caret.Offset = value;
+                textArea.Carets[0].Offset = value;
             }
         }
 
@@ -958,7 +958,7 @@ namespace AvaloniaEdit
             get
             {
                 if (textArea.Selection.IsEmpty)
-                    return textArea.Caret.Offset;
+                    return textArea.Carets[0].Offset;
                 else
                     return textArea.Selection.SurroundingSegment.Offset;
             }
@@ -991,7 +991,7 @@ namespace AvaloniaEdit
             if (length < 0 || start + length > documentLength)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "Value must be between 0 and " + (documentLength - start));
             TextArea.Selection = Selection.Create(TextArea, start, start + length);
-            TextArea.Caret.Offset = start + length;
+            TextArea.Carets[0].Offset = start + length;
         }
 
         /// <summary>

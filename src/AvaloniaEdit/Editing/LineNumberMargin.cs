@@ -161,7 +161,7 @@ namespace AvaloniaEdit.Editing
                 var currentSeg = GetTextLineSegment(e);
                 if (currentSeg == SimpleSegment.Invalid)
                     return;
-                TextArea.Caret.Offset = currentSeg.Offset + currentSeg.Length;
+                TextArea.Carets[0].Offset = currentSeg.Offset + currentSeg.Length;
                 e.Pointer.Capture(this);
                 if (e.Pointer.Captured == this)
                 {
@@ -177,7 +177,7 @@ namespace AvaloniaEdit.Editing
                     {
                         ExtendSelection(currentSeg);
                     }
-                    TextArea.Caret.BringCaretToView(0);
+                    TextArea.Carets[0].BringCaretToView(0);
                 }
             }
         }
@@ -204,12 +204,12 @@ namespace AvaloniaEdit.Editing
         {
             if (currentSeg.Offset < _selectionStart.Offset)
             {
-                TextArea.Caret.Offset = currentSeg.Offset;
+                TextArea.Carets[0].Offset = currentSeg.Offset;
                 TextArea.Selection = Selection.Create(TextArea, currentSeg.Offset, _selectionStart.Offset + _selectionStart.Length);
             }
             else
             {
-                TextArea.Caret.Offset = currentSeg.Offset + currentSeg.Length;
+                TextArea.Carets[0].Offset = currentSeg.Offset + currentSeg.Length;
                 TextArea.Selection = Selection.Create(TextArea, _selectionStart.Offset, currentSeg.Offset + currentSeg.Length);
             }
         }
@@ -223,7 +223,7 @@ namespace AvaloniaEdit.Editing
                 if (currentSeg == SimpleSegment.Invalid)
                     return;
                 ExtendSelection(currentSeg);
-                TextArea.Caret.BringCaretToView(0);
+                TextArea.Carets[0].BringCaretToView(0);
             }
             base.OnPointerMoved(e);
         }

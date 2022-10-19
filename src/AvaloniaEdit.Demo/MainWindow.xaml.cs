@@ -61,7 +61,7 @@ namespace AvaloniaEdit.Demo
             _textEditor.TextArea.TextEntering += textEditor_TextArea_TextEntering;
             _textEditor.Options.ShowBoxForControlCharacters = true;
             _textEditor.TextArea.IndentationStrategy = new Indentation.CSharp.CSharpIndentationStrategy(_textEditor.Options);
-            _textEditor.TextArea.Caret.PositionChanged += Caret_PositionChanged;
+            _textEditor.TextArea.Carets[0].PositionChanged += Caret_PositionChanged;
             _textEditor.TextArea.RightClickMovesCaret = true;
 
             _addControlButton = this.FindControl<Button>("addControlBtn");
@@ -109,8 +109,8 @@ namespace AvaloniaEdit.Demo
         private void Caret_PositionChanged(object sender, EventArgs e)
         {
             _statusTextBlock.Text = string.Format("Line {0} Column {1}",
-                _textEditor.TextArea.Caret.Line,
-                _textEditor.TextArea.Caret.Column);
+                _textEditor.TextArea.Carets[0].Line,
+                _textEditor.TextArea.Carets[0].Column);
         }
 
         protected override void OnClosed(EventArgs e)

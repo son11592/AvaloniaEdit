@@ -553,5 +553,16 @@ namespace AvaloniaEdit.Editing
             get => _caretAdorner.CaretBrush;
             set => _caretAdorner.CaretBrush = value;
         }
+
+        #region TablePlus - Multiple Carets
+        internal CaretLayer Layer => _caretAdorner;
+
+        public void ReleaseCaret()
+        {
+            _textView.VisualLinesChanged -= TextView_VisualLinesChanged;
+            _textView.ScrollOffsetChanged -= TextView_ScrollOffsetChanged;
+            _textView.Layers.Remove(_caretAdorner);
+        }
+        #endregion
     }
 }

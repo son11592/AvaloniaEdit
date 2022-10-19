@@ -103,7 +103,7 @@ namespace AvaloniaEdit.Snippets
             _foreground = new Renderer { Layer = KnownLayer.Text, Element = this };
             _context.TextArea.TextView.BackgroundRenderers.Add(_background);
             _context.TextArea.TextView.BackgroundRenderers.Add(_foreground);
-            _context.TextArea.Caret.PositionChanged += Caret_PositionChanged;
+            _context.TextArea.Carets[0].PositionChanged += Caret_PositionChanged;
             Caret_PositionChanged(null, null);
 
             Text = GetText();
@@ -114,7 +114,7 @@ namespace AvaloniaEdit.Snippets
             TextDocumentWeakEventManager.TextChanged.RemoveHandler(_context.Document, OnDocumentTextChanged);
             _context.TextArea.TextView.BackgroundRenderers.Remove(_background);
             _context.TextArea.TextView.BackgroundRenderers.Remove(_foreground);
-            _context.TextArea.Caret.PositionChanged -= Caret_PositionChanged;
+            _context.TextArea.Carets[0].PositionChanged -= Caret_PositionChanged;
         }
 
         private bool _isCaretInside;
@@ -124,7 +124,7 @@ namespace AvaloniaEdit.Snippets
             var s = Segment;
             if (s != null)
             {
-                var newIsCaretInside = s.Contains(_context.TextArea.Caret.Offset, 0);
+                var newIsCaretInside = s.Contains(_context.TextArea.Carets[0].Offset, 0);
                 if (newIsCaretInside != _isCaretInside)
                 {
                     _isCaretInside = newIsCaretInside;

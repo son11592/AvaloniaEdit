@@ -127,7 +127,7 @@ namespace AvaloniaEdit.Editing
                     {
                         if (defaultSegmentType == DefaultSegmentType.CurrentLine)
                         {
-                            start = end = textArea.Document.GetLineByNumber(textArea.Caret.Line);
+                            start = end = textArea.Document.GetLineByNumber(textArea.Carets[0].Line);
                         }
                         else if (defaultSegmentType == DefaultSegmentType.WholeDocument)
                         {
@@ -158,7 +158,7 @@ namespace AvaloniaEdit.Editing
                         }
                     }
                 }
-                textArea.Caret.BringCaretToView();
+                textArea.Carets[0].BringCaretToView();
                 args.Handled = true;
             }
         }
@@ -179,7 +179,7 @@ namespace AvaloniaEdit.Editing
                     {
                         if (defaultSegmentType == DefaultSegmentType.CurrentLine)
                         {
-                            segments = new ISegment[] { textArea.Document.GetLineByNumber(textArea.Caret.Line) };
+                            segments = new ISegment[] { textArea.Document.GetLineByNumber(textArea.Carets[0].Line) };
                         }
                         else if (defaultSegmentType == DefaultSegmentType.WholeDocument)
                         {
@@ -205,7 +205,7 @@ namespace AvaloniaEdit.Editing
                         }
                     }
                 }
-                textArea.Caret.BringCaretToView();
+                textArea.Carets[0].BringCaretToView();
                 args.Handled = true;
             }
         }
@@ -257,11 +257,11 @@ namespace AvaloniaEdit.Editing
                     }
                     else
                     {
-                        var indentationString = textArea.Options.GetIndentationString(textArea.Caret.Column);
+                        var indentationString = textArea.Options.GetIndentationString(textArea.Carets[0].Column);
                         textArea.ReplaceSelectionWithText(indentationString);
                     }
                 }
-                textArea.Caret.BringCaretToView();
+                textArea.Carets[0].BringCaretToView();
                 args.Handled = true;
             }
         }
@@ -298,12 +298,12 @@ namespace AvaloniaEdit.Editing
                 {
                     if (textArea.Selection.IsEmpty)
                     {
-                        var startPos = textArea.Caret.Position;
+                        var startPos = textArea.Carets[0].Position;
                         var enableVirtualSpace = textArea.Options.EnableVirtualSpace;
                         // When pressing delete; don't move the caret further into virtual space - instead delete the newline
                         if (caretMovement == CaretMovementType.CharRight)
                             enableVirtualSpace = false;
-                        var desiredXPos = textArea.Caret.DesiredXPos;
+                        var desiredXPos = textArea.Carets[0].DesiredXPos;
                         var endPos = CaretNavigationCommandHandler.GetNewCaretPosition(
                             textArea.TextView, startPos, caretMovement, enableVirtualSpace, ref desiredXPos);
                         // GetNewCaretPosition may return (0,0) as new position,
@@ -322,7 +322,7 @@ namespace AvaloniaEdit.Editing
                     {
                         textArea.RemoveSelectedText();
                     }
-                    textArea.Caret.BringCaretToView();
+                    textArea.Carets[0].BringCaretToView();
                     args.Handled = true;
                 }
             };
@@ -371,7 +371,7 @@ namespace AvaloniaEdit.Editing
             {
                 if (textArea.Selection.IsEmpty && textArea.Options.CutCopyWholeLine)
                 {
-                    var currentLine = textArea.Document.GetLineByNumber(textArea.Caret.Line);
+                    var currentLine = textArea.Document.GetLineByNumber(textArea.Carets[0].Line);
                     CopyWholeLine(textArea, currentLine);
                 }
                 else
@@ -389,7 +389,7 @@ namespace AvaloniaEdit.Editing
             {
                 if (textArea.Selection.IsEmpty && textArea.Options.CutCopyWholeLine)
                 {
-                    var currentLine = textArea.Document.GetLineByNumber(textArea.Caret.Line);
+                    var currentLine = textArea.Document.GetLineByNumber(textArea.Carets[0].Line);
                     if (CopyWholeLine(textArea, currentLine))
                     {
                         var segmentsToDelete =
@@ -406,7 +406,7 @@ namespace AvaloniaEdit.Editing
                     if (CopySelectedText(textArea))
                         textArea.RemoveSelectedText();
                 }
-                textArea.Caret.BringCaretToView();
+                textArea.Carets[0].BringCaretToView();
                 args.Handled = true;
             }
         }
@@ -482,7 +482,7 @@ namespace AvaloniaEdit.Editing
             var textArea = GetTextArea(target);
             if (textArea?.Document != null)
             {
-                args.CanExecute = textArea.ReadOnlySectionProvider.CanInsert(textArea.Caret.Offset);
+                args.CanExecute = textArea.ReadOnlySectionProvider.CanInsert(textArea.Carets[0].Offset);
                 args.Handled = true;
             }
         }
@@ -516,7 +516,7 @@ namespace AvaloniaEdit.Editing
                     textArea.ReplaceSelectionWithText(text);
                 }
 
-                textArea.Caret.BringCaretToView();
+                textArea.Carets[0].BringCaretToView();
                 args.Handled = true;
 
                 textArea.Document.EndUpdate();
@@ -543,7 +543,7 @@ namespace AvaloniaEdit.Editing
                 //else
                 //    return null; // no text data format
                 // convert text back to correct newlines for this document
-                var newLine = TextUtilities.GetNewLineFromDocument(textArea.Document, textArea.Caret.Line);
+                var newLine = TextUtilities.GetNewLineFromDocument(textArea.Document, textArea.Carets[0].Line);
                 text = TextUtilities.NormalizeNewLines(text, newLine);
                 text = textArea.Options.ConvertTabsToSpaces
                     ? text.Replace("\t", new String(' ', textArea.Options.IndentationSize))
@@ -581,7 +581,7 @@ namespace AvaloniaEdit.Editing
                 if (textArea.Selection.Length == 0)
                 {
                     // There is no selection, simply delete current line
-                    firstLineIndex = lastLineIndex = textArea.Caret.Line;
+                    firstLineIndex = lastLineIndex = textArea.Carets[0].Line;
                 }
                 else
                 {
@@ -766,7 +766,7 @@ namespace AvaloniaEdit.Editing
                     }
                     textArea.IndentationStrategy.IndentLines(textArea.Document, start, end);
                 }
-                textArea.Caret.BringCaretToView();
+                textArea.Carets[0].BringCaretToView();
                 args.Handled = true;
             }
         }

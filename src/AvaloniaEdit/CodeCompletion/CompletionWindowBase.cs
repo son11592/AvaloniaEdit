@@ -83,7 +83,7 @@ namespace AvaloniaEdit.CodeCompletion
 
             AddHandler(PointerReleasedEvent, OnMouseUp, handledEventsToo: true);
 
-            StartOffset = EndOffset = TextArea.Caret.Offset;
+            StartOffset = EndOffset = TextArea.Carets[0].Offset;
 
             PlacementTarget = TextArea.TextView;
             PlacementMode = PlacementMode.AnchorAndGravity;
@@ -106,13 +106,13 @@ namespace AvaloniaEdit.CodeCompletion
 
         private void Initailize()
         {
-            if (_document != null && StartOffset != TextArea.Caret.Offset)
+            if (_document != null && StartOffset != TextArea.Carets[0].Offset)
             {
                 SetPosition(new TextViewPosition(_document.GetLocation(StartOffset)));
             }
             else
             {
-                SetPosition(TextArea.Caret.Position);
+                SetPosition(TextArea.Carets[0].Position);
             }
         }
 

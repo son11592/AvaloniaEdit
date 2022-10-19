@@ -140,7 +140,7 @@ namespace AvaloniaEdit.Editing
             if (textArea?.Document != null)
             {
                 args.Handled = true;
-                textArea.Caret.Offset = textArea.Document.TextLength;
+                textArea.Carets[0].Offset = textArea.Document.TextLength;
                 textArea.Selection = Selection.Create(textArea, 0, textArea.Document.TextLength);
             }
         }
@@ -160,7 +160,7 @@ namespace AvaloniaEdit.Editing
                     args.Handled = true;
                     textArea.ClearSelection();
                     MoveCaret(textArea, direction);
-                    textArea.Caret.BringCaretToView();
+                    textArea.Carets[0].BringCaretToView();
                 }
             };
         }
@@ -173,10 +173,10 @@ namespace AvaloniaEdit.Editing
                 if (textArea?.Document != null)
                 {
                     args.Handled = true;
-                    var oldPosition = textArea.Caret.Position;
+                    var oldPosition = textArea.Carets[0].Position;
                     MoveCaret(textArea, direction);
-                    textArea.Selection = textArea.Selection.StartSelectionOrSetEndpoint(oldPosition, textArea.Caret.Position);
-                    textArea.Caret.BringCaretToView();
+                    textArea.Selection = textArea.Selection.StartSelectionOrSetEndpoint(oldPosition, textArea.Carets[0].Position);
+                    textArea.Carets[0].BringCaretToView();
                 }
             };
         }
@@ -194,15 +194,15 @@ namespace AvaloniaEdit.Editing
                     if (textArea.Options.EnableRectangularSelection && !(textArea.Selection is RectangleSelection))
                     {
                         textArea.Selection = textArea.Selection.IsEmpty
-                            ? new RectangleSelection(textArea, textArea.Caret.Position, textArea.Caret.Position)
+                            ? new RectangleSelection(textArea, textArea.Carets[0].Position, textArea.Carets[0].Position)
                             : new RectangleSelection(textArea, textArea.Selection.StartPosition,
-                                textArea.Caret.Position);
+                                textArea.Carets[0].Position);
                     }
                     // Now move the caret and extend the selection
-                    var oldPosition = textArea.Caret.Position;
+                    var oldPosition = textArea.Carets[0].Position;
                     MoveCaret(textArea, direction);
-                    textArea.Selection = textArea.Selection.StartSelectionOrSetEndpoint(oldPosition, textArea.Caret.Position);
-                    textArea.Caret.BringCaretToView();
+                    textArea.Selection = textArea.Selection.StartSelectionOrSetEndpoint(oldPosition, textArea.Carets[0].Position);
+                    textArea.Carets[0].BringCaretToView();
                 }
             };
         }
@@ -210,9 +210,9 @@ namespace AvaloniaEdit.Editing
         #region Caret movement
         internal static void MoveCaret(TextArea textArea, CaretMovementType direction)
         {
-            var desiredXPos = textArea.Caret.DesiredXPos;
-            textArea.Caret.Position = GetNewCaretPosition(textArea.TextView, textArea.Caret.Position, direction, textArea.Selection.EnableVirtualSpace, ref desiredXPos);
-            textArea.Caret.DesiredXPos = desiredXPos;
+            var desiredXPos = textArea.Carets[0].DesiredXPos;
+            textArea.Carets[0].Position = GetNewCaretPosition(textArea.TextView, textArea.Carets[0].Position, direction, textArea.Selection.EnableVirtualSpace, ref desiredXPos);
+            textArea.Carets[0].DesiredXPos = desiredXPos;
         }
 
         internal static TextViewPosition GetNewCaretPosition(TextView textView, TextViewPosition caretPosition, CaretMovementType direction, bool enableVirtualSpace, ref double desiredXPos)

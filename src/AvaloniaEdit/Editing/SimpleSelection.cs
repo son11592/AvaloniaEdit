@@ -71,12 +71,12 @@ namespace AvaloniaEdit.Editing
                         {
                             // place caret at the beginning of the selection
                             // ReSharper disable once ImpureMethodCallOnReadonlyValueField
-                            TextArea.Caret.Position = _start.CompareTo(_end) <= 0 ? _start : _end;
+                            TextArea.Carets[0].Position = _start.CompareTo(_end) <= 0 ? _start : _end;
                         }
                         else
                         {
                             // place caret so that it ends up behind the new text
-                            TextArea.Caret.Offset = segmentsToDelete[i].EndOffset;
+                            TextArea.Carets[0].Offset = segmentsToDelete[i].EndOffset;
                         }
                         TextArea.Document.Replace(segmentsToDelete[i], newText);
                     }

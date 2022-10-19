@@ -62,7 +62,7 @@ namespace AvaloniaEdit.Snippets
             else if (e.Key == Key.Tab)
             {
                 var backwards = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
-                SelectElement(FindNextEditableElement(TextArea.Caret.Offset, backwards));
+                SelectElement(FindNextEditableElement(TextArea.Carets[0].Offset, backwards));
                 e.Handled = true;
             }
         }
@@ -72,7 +72,7 @@ namespace AvaloniaEdit.Snippets
             if (element != null)
             {
                 TextArea.Selection = Selection.Create(TextArea, element.Segment);
-                TextArea.Caret.Offset = element.Segment.EndOffset;
+                TextArea.Carets[0].Offset = element.Segment.EndOffset;
             }
         }
 

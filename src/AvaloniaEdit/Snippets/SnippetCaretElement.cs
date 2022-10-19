@@ -62,7 +62,7 @@ namespace AvaloniaEdit.Snippets
             {
                 if (e.Reason == DeactivateReason.ReturnPressed || e.Reason == DeactivateReason.NoActiveElements)
                 {
-                    context.TextArea.Caret.Offset = pos.Offset;
+                    context.TextArea.Carets[0].Offset = pos.Offset;
                 }
             };
         }

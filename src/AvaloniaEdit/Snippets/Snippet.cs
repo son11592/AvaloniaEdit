@@ -36,7 +36,7 @@ namespace AvaloniaEdit.Snippets
                 throw new ArgumentNullException(nameof(textArea));
 
             var selection = textArea.Selection.SurroundingSegment;
-            var insertionPosition = textArea.Caret.Offset;
+            var insertionPosition = textArea.Carets[0].Offset;
 
             if (selection != null) // if something is selected
                                    // use selection start instead of caret position,

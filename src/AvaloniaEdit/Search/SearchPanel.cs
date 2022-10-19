@@ -334,7 +334,7 @@ namespace AvaloniaEdit.Search
         /// </summary>
         public void FindNext()
         {
-            var result = _renderer.CurrentResults.FindFirstSegmentWithStartAfter(_textArea.Caret.Offset + 1) ??
+            var result = _renderer.CurrentResults.FindFirstSegmentWithStartAfter(_textArea.Carets[0].Offset + 1) ??
                          _renderer.CurrentResults.FirstSegment;
             if (result != null)
             {
@@ -347,7 +347,7 @@ namespace AvaloniaEdit.Search
         /// </summary>
         public void FindPrevious()
         {
-            var result = _renderer.CurrentResults.FindFirstSegmentWithStartAfter(_textArea.Caret.Offset);
+            var result = _renderer.CurrentResults.FindFirstSegmentWithStartAfter(_textArea.Carets[0].Offset);
             if (result != null)
                 result = _renderer.CurrentResults.GetPreviousSegment(result);
             if (result == null)
@@ -400,7 +400,7 @@ namespace AvaloniaEdit.Search
 
             if (!string.IsNullOrEmpty(SearchPattern))
             {
-                var offset = _textArea.Caret.Offset;
+                var offset = _textArea.Carets[0].Offset;
                 if (changeSelection)
                 {
                     _textArea.ClearSelection();
@@ -435,16 +435,16 @@ namespace AvaloniaEdit.Search
 
         private void SelectResult(TextSegment result)
         {
-            _textArea.Caret.Offset = result.StartOffset;
+            _textArea.Carets[0].Offset = result.StartOffset;
             _textArea.Selection = Selection.Create(_textArea, result.StartOffset, result.EndOffset);
 
             double distanceToViewBorder = _border == null ?
                 Caret.MinimumDistanceToViewBorder :
                 _border.Bounds.Height + _textArea.TextView.DefaultLineHeight;
-            _textArea.Caret.BringCaretToView(distanceToViewBorder);
+            _textArea.Carets[0].BringCaretToView(distanceToViewBorder);
 
             // show caret even if the editor does not have the Keyboard Focus
-            _textArea.Caret.Show();
+            _textArea.Carets[0].Show();
         }
 
         private void SearchLayerKeyDown(object sender, KeyEventArgs e)

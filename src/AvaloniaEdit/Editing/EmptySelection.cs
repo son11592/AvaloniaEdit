@@ -65,15 +65,15 @@ namespace AvaloniaEdit.Editing
         {
             if (newText == null)
                 throw new ArgumentNullException(nameof(newText));
-            newText = AddSpacesIfRequired(newText, TextArea.Caret.Position, TextArea.Caret.Position);
+            newText = AddSpacesIfRequired(newText, TextArea.Carets[0].Position, TextArea.Carets[0].Position);
             if (newText.Length > 0)
             {
-                if (TextArea.ReadOnlySectionProvider.CanInsert(TextArea.Caret.Offset))
+                if (TextArea.ReadOnlySectionProvider.CanInsert(TextArea.Carets[0].Offset))
                 {
-                    TextArea.Document.Insert(TextArea.Caret.Offset, newText);
+                    TextArea.Document.Insert(TextArea.Carets[0].Offset, newText);
                 }
             }
-            TextArea.Caret.VisualColumn = -1;
+            TextArea.Carets[0].VisualColumn = -1;
         }
 
         public override int Length => 0;

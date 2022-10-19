@@ -145,7 +145,7 @@ namespace AvaloniaEdit.CodeCompletion
         {
             CompletionList.InsertionRequested += CompletionList_InsertionRequested;
             CompletionList.SelectionChanged += CompletionList_SelectionChanged;
-            TextArea.Caret.PositionChanged += CaretPositionChanged;
+            TextArea.Carets[0].PositionChanged += CaretPositionChanged;
             TextArea.PointerWheelChanged += TextArea_MouseWheel;
             TextArea.TextInput += TextArea_PreviewTextInput;
         }
@@ -155,7 +155,7 @@ namespace AvaloniaEdit.CodeCompletion
         {
             CompletionList.InsertionRequested -= CompletionList_InsertionRequested;
             CompletionList.SelectionChanged -= CompletionList_SelectionChanged;
-            TextArea.Caret.PositionChanged -= CaretPositionChanged;
+            TextArea.Carets[0].PositionChanged -= CaretPositionChanged;
             TextArea.PointerWheelChanged -= TextArea_MouseWheel;
             TextArea.TextInput -= TextArea_PreviewTextInput;
             base.DetachEvents();
@@ -209,7 +209,7 @@ namespace AvaloniaEdit.CodeCompletion
 
         private void CaretPositionChanged(object sender, EventArgs e)
         {
-            var offset = TextArea.Caret.Offset;
+            var offset = TextArea.Carets[0].Offset;
             if (offset == StartOffset)
             {
                 if (CloseAutomatically && CloseWhenCaretAtBeginning)
