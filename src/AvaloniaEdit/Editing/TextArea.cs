@@ -436,6 +436,10 @@ namespace AvaloniaEdit.Editing
         /// Occurs when the selection has changed.
         /// </summary>
         public event EventHandler SelectionChanged;
+        public void NotifySelectionChanged()
+        {
+            if (SelectionChanged != null) SelectionChanged(this, EventArgs.Empty);
+        }
 
         /// <summary>
         /// Gets/Sets the selection in this text area.
@@ -443,58 +447,13 @@ namespace AvaloniaEdit.Editing
 
         public Selection Selection
         {
-            get => _selection;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-                if (value.TextArea != this)
-                    throw new ArgumentException("Cannot use a Selection instance that belongs to another text area.");
-                if (!Equals(_selection, value))
-                {
-                    if (TextView != null)
-                    {
-                        var oldSegment = _selection.SurroundingSegment;
-                        var newSegment = value.SurroundingSegment;
-                        if (!Selection.EnableVirtualSpace && (_selection is SimpleSelection && value is SimpleSelection && oldSegment != null && newSegment != null))
-                        {
-                            // perf optimization:
-                            // When a simple selection changes, don't redraw the whole selection, but only the changed parts.
-                            var oldSegmentOffset = oldSegment.Offset;
-                            var newSegmentOffset = newSegment.Offset;
-                            if (oldSegmentOffset != newSegmentOffset)
-                            {
-                                TextView.Redraw(Math.Min(oldSegmentOffset, newSegmentOffset),
-                                                Math.Abs(oldSegmentOffset - newSegmentOffset));
-                            }
-                            var oldSegmentEndOffset = oldSegment.EndOffset;
-                            var newSegmentEndOffset = newSegment.EndOffset;
-                            if (oldSegmentEndOffset != newSegmentEndOffset)
-                            {
-                                TextView.Redraw(Math.Min(oldSegmentEndOffset, newSegmentEndOffset),
-                                                Math.Abs(oldSegmentEndOffset - newSegmentEndOffset));
-                            }
-                        }
-                        else
-                        {
-                            TextView.Redraw(oldSegment);
-                            TextView.Redraw(newSegment);
-                        }
-                    }
-                    _selection = value;
-                    SelectionChanged?.Invoke(this, EventArgs.Empty);
-                    // a selection change causes commands like copy/paste/etc. to change status
-                    //CommandManager.InvalidateRequerySuggested();
-                }
-            }
+            get { return carets[0].Selection; }
+            set { carets[0].Selection = value; }
         }
 
-        /// <summary>
-        /// Clears the current selection.
-        /// </summary>
-        public void ClearSelection()
+        public List<Selection> Selections
         {
-            Selection = EmptySelection;
+            get => carets.Select(o => o.Selection).ToList();
         }
 
         /// <summary>
@@ -1325,6 +1284,49 @@ namespace AvaloniaEdit.Editing
         {
             StopBlinkAnimation();
             foreach (var caret in Carets) caret.Hide();
+        }
+
+        public void AddNewCaret()
+        {
+            AddNewCaret(0);
+        }
+
+        public void AddNewCaret(int offset)
+        {
+            var caret = new Caret(this);
+            caret.PositionChanged += (sender, e) => RequestSelectionValidation();
+            caret.PositionChanged += CaretPositionChanged;
+            caret.Offset = offset;
+
+            AttachTypingEvents();
+            carets.Add(caret);
+            if (carets.Count > 1)
+            {
+                caret.Layer.Blink = Blink;
+                caret.Show();
+            }
+        }
+
+        public void CleanupCarets()
+        {
+            while (carets.Count > 1)
+            {
+                if (carets.LastOrDefault() is Caret lastCaret)
+                {
+                    lastCaret.ReleaseCaret();
+                    carets.Remove(lastCaret);
+                }
+            }
+        }
+
+        public void ClearSelection()
+        {
+            DefaultCaret().ClearSelection();
+        }
+
+        public void ClearSelections()
+        {
+            foreach (var caret in carets) caret.ClearSelection();
         }
         #endregion
     }

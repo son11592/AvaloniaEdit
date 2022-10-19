@@ -557,6 +557,59 @@ namespace AvaloniaEdit.Editing
         #region TablePlus - Multiple Carets
         internal CaretLayer Layer => _caretAdorner;
 
+        private Selection _selection;
+        public Selection Selection
+        {
+            get => _selection;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+                if (value.TextArea != this._textArea)
+                    throw new ArgumentException("Cannot use a Selection instance that belongs to another text area.");
+                if (!Equals(_selection, value))
+                {
+                    if (_textView != null)
+                    {
+                        var oldSegment = _selection.SurroundingSegment;
+                        var newSegment = value.SurroundingSegment;
+                        if (!Selection.EnableVirtualSpace && (_selection is SimpleSelection && value is SimpleSelection && oldSegment != null && newSegment != null))
+                        {
+                            // perf optimization:
+                            // When a simple selection changes, don't redraw the whole selection, but only the changed parts.
+                            var oldSegmentOffset = oldSegment.Offset;
+                            var newSegmentOffset = newSegment.Offset;
+                            if (oldSegmentOffset != newSegmentOffset)
+                            {
+                                _textView.Redraw(Math.Min(oldSegmentOffset, newSegmentOffset),
+                                                Math.Abs(oldSegmentOffset - newSegmentOffset));
+                            }
+                            var oldSegmentEndOffset = oldSegment.EndOffset;
+                            var newSegmentEndOffset = newSegment.EndOffset;
+                            if (oldSegmentEndOffset != newSegmentEndOffset)
+                            {
+                                _textView.Redraw(Math.Min(oldSegmentEndOffset, newSegmentEndOffset),
+                                                Math.Abs(oldSegmentEndOffset - newSegmentEndOffset));
+                            }
+                        }
+                        else
+                        {
+                            _textView.Redraw(oldSegment);
+                            _textView.Redraw(newSegment);
+                        }
+                    }
+                    _selection = value;
+                    _textArea.NotifySelectionChanged();
+                    // a selection change causes commands like copy/paste/etc. to change status
+                    //CommandManager.InvalidateRequerySuggested();
+                }
+            }
+        }
+        public void ClearSelection()
+        {
+            Selection = _textArea.EmptySelection;
+        }
+
         public void ReleaseCaret()
         {
             _textView.VisualLinesChanged -= TextView_VisualLinesChanged;

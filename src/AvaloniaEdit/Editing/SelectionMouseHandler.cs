@@ -23,6 +23,7 @@ using AvaloniaEdit.Utils;
 using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Windows.Input;
 
 namespace AvaloniaEdit.Editing
 {
@@ -507,6 +508,124 @@ namespace AvaloniaEdit.Editing
                 }
             }
 
+
+            // TablePlus - Add new caret on Ctrl + Left Mouse
+            if (!e.Handled && e.GetCurrentPoint(TextArea).Properties.IsLeftButtonPressed)
+            {
+                var modifiers = e.KeyModifiers;
+                var shift = (modifiers & KeyModifiers.Shift) == KeyModifiers.Shift;
+                var ctrl = (modifiers & KeyModifiers.Control) == KeyModifiers.Control;
+                if (ctrl && e.ClickCount == 1)
+                {
+                    // Otherwise add a new caret
+                    TextArea.ClearSelections();
+                    TextArea.AddNewCaret();
+                    SetCaretOffsetToMousePosition(e, TextArea.Carets.LastOrDefault());
+
+                    var newCaret = TextArea.Carets.Last();
+                    foreach (var caret in TextArea.Carets)
+                    {
+                        if (newCaret != caret && newCaret.Position == caret.Position)
+                        {
+                            TextArea.removeCaret(newCaret);
+                            // If only remove the caret if there more than 2 left
+                            if (TextArea.Carets.Count > 1)
+                            {
+                                TextArea.removeCaret(caret);
+                            }
+                            e.Handled = true;
+                            return;
+                        }
+                    }
+
+                }
+                else
+                {
+                    TextArea.CleanupCarets();
+
+                    if (TextArea.Options.EnableTextDragDrop && e.ClickCount == 1 && !shift)
+                    {
+                        int visualColumn;
+                        bool isAtEndOfLine;
+                        int offset = GetOffsetFromMousePosition(e, out visualColumn, out isAtEndOfLine);
+                        if (TextArea.Selection.Contains(offset))
+                        {
+                            if (TextArea.CapturePointer(e.Pointer))
+                            {
+                                _mode = SelectionMode.PossibleDragStart;
+                                _possibleDragStartMousePos = e.GetPosition(TextArea);
+                            }
+                            e.Handled = true;
+                            return;
+                        }
+                    }
+
+                    var oldPosition = TextArea.DefaultCaret().Position;
+                    SetCaretOffsetToMousePosition(e, TextArea.Carets[0]);
+
+
+                    if (!shift)
+                    {
+                        TextArea.ClearSelections();
+                    }
+                    if (TextArea.CapturePointer(e.Pointer))
+                    {
+                        if ((modifiers & KeyModifiers.Alt) == KeyModifiers.Alt && TextArea.Options.EnableRectangularSelection)
+                        {
+                            _mode = SelectionMode.Rectangular;
+                            if (shift && TextArea.Selection is RectangleSelection)
+                            {
+                                TextArea.Selection = TextArea.Selection.StartSelectionOrSetEndpoint(oldPosition, TextArea.DefaultCaret().Position);
+                            }
+                        }
+                        else if (e.ClickCount == 1 && ((modifiers & KeyModifiers.Control) == 0))
+                        {
+                            _mode = SelectionMode.Normal;
+                            if (shift && !(TextArea.Selection is RectangleSelection))
+                            {
+                                TextArea.Selection = TextArea.Selection.StartSelectionOrSetEndpoint(oldPosition, TextArea.DefaultCaret().Position);
+                            }
+                        }
+                        else
+                        {
+                            SimpleSegment startWord;
+                            if (e.ClickCount == 3)
+                            {
+                                _mode = SelectionMode.WholeLine;
+                                startWord = GetLineAtMousePosition(e);
+                            }
+                            else
+                            {
+                                _mode = SelectionMode.WholeWord;
+                                startWord = GetWordAtMousePosition(e);
+                            }
+                            if (startWord == SimpleSegment.Invalid)
+                            {
+                                _mode = SelectionMode.None;
+                                TextArea.ReleasePointerCapture(e.Pointer);
+                                return;
+                            }
+                            if (shift && !TextArea.Selection.IsEmpty)
+                            {
+                                if (startWord.Offset < TextArea.Selection.SurroundingSegment.Offset)
+                                {
+                                    TextArea.Selection = TextArea.Selection.SetEndpoint(new TextViewPosition(TextArea.Document.GetLocation(startWord.Offset)));
+                                }
+                                else if (startWord.EndOffset > TextArea.Selection.SurroundingSegment.EndOffset)
+                                {
+                                    TextArea.Selection = TextArea.Selection.SetEndpoint(new TextViewPosition(TextArea.Document.GetLocation(startWord.EndOffset)));
+                                }
+                                _startWord = new AnchorSegment(TextArea.Document, TextArea.Selection.SurroundingSegment);
+                            }
+                            else
+                            {
+                                TextArea.Selection = Selection.Create(TextArea, startWord.Offset, startWord.EndOffset);
+                                _startWord = new AnchorSegment(TextArea.Document, startWord.Offset, startWord.Length);
+                            }
+                        }
+                    }
+                }
+            }
         }
         #endregion
 

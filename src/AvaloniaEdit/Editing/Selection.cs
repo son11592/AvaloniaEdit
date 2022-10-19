@@ -63,7 +63,7 @@ namespace AvaloniaEdit.Editing
             return Create(textArea, segment.Offset, segment.EndOffset);
         }
 
-        internal TextArea TextArea { get; }
+        public TextArea TextArea { get; }
 
         /// <summary>
         /// Constructor for Selection.
